@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-def call(description=null, pkgList=null, buildCmd=null, changesPattern="**") {
+def call(description=null, pkgList=null, buildCmd=null, changesPattern="**", bypassDocker=false) {
     // - description: Arbitrary text to print on Jenkins Job Description
     //   instead of package name
     // - pkgList: Multiple packages can be build at once in a single Pipeline run
@@ -63,12 +63,13 @@ def call(description=null, pkgList=null, buildCmd=null, changesPattern="**") {
                     }
                 }
             }
-            stage('Build Code') {
+            stage('Build Code (docker)') {
                 when {
                     anyOf {
                         changeset pattern: changesPattern, caseSensitive: true
                         triggeredBy cause: "UserIdCause"
                     }
+                    expression { !bypassDocker }
                 }
                 parallel {
                     stage('amd64') {
@@ -80,6 +81,45 @@ def call(description=null, pkgList=null, buildCmd=null, changesPattern="**") {
                                 alwaysPull true
                                 reuseNode true
                             }
+                        }
+                        environment {
+                            // get relative directory path to Jenkinsfile
+                            BASE_DIR = getJenkinsfilePath()
+                            CHANGESET_DIR = getChangeSetPath()
+                        }
+                        steps {
+                            script {
+                                cloneAndBuild(description, 'amd64', pkgList, buildCmd)
+                                stash includes: '**/*.deb', name: 'binary-amd64'
+                                try {
+                                    stash includes: '**/*.dsc', name: 'source-dsc'
+                                    stash includes: '**/*.tar.*z', name: 'source-tar'
+                                } catch (e) {
+                                    print "Stashing failed, ignoring - no source packages"
+                                    currentBuild.result = 'SUCCESS'
+                                }
+                            }
+                        }
+                        post {
+                            cleanup {
+                                deleteDir()
+                            }
+                        }
+                    }
+                }
+            }
+            stage('Build Code (native)') {
+                when {
+                    anyOf {
+                        changeset pattern: changesPattern, caseSensitive: true
+                        triggeredBy cause: "UserIdCause"
+                    }
+                    expression { bypassDocker }
+                }
+                parallel {
+                    stage('amd64') {
+                        agent {
+                    		label "ec2_amd64"
                         }
                         environment {
                             // get relative directory path to Jenkinsfile
