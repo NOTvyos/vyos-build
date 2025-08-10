@@ -1,6 +1,4 @@
 debconf
-gpgv
-gnupg
 vyos-1x
 vyos-user-utils
 zstd

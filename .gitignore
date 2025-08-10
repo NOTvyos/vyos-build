@@ -4,6 +4,9 @@ packer_build/*
 packer_cache/*
 key/*
 packages/*
-testinstall*.img
-*.qcow2
-*.tar
+!packages/*/
+/testinstall*.img
+/*.qcow2
+/*.tar
+.DS_Store
+._.DS_Store

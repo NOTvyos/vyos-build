@@ -6,6 +6,7 @@ Subject: [PATCH] VyOS: Add linkstate IP device attribute
 Backport of earlier Vyatta patch.
 
 (cherry picked from commit 7c5a851086686be14ae937c80d6cee34814dbefc)
+
 ---
  Documentation/networking/ip-sysctl.rst | 11 +++++++++++
  include/linux/inetdevice.h             |  1 +
@@ -88,10 +89,10 @@ index cf592d7b630f..e8915701aa73 100644
  };
  
 diff --git a/net/ipv4/devinet.c b/net/ipv4/devinet.c
-index bc74f131fe4d..9cdd5b50f9b2 100644
+index c33b1ecc591e..7576d51cd16d 100644
 --- a/net/ipv4/devinet.c
 +++ b/net/ipv4/devinet.c
-@@ -2595,6 +2595,7 @@ static struct devinet_sysctl_table {
+@@ -2609,6 +2609,7 @@ static struct devinet_sysctl_table {
  					      "route_localnet"),
  		DEVINET_SYSCTL_FLUSHING_ENTRY(DROP_UNICAST_IN_L2_MULTICAST,
  					      "drop_unicast_in_l2_multicast"),
@@ -100,10 +101,10 @@ index bc74f131fe4d..9cdd5b50f9b2 100644
  };
  
 diff --git a/net/ipv6/addrconf.c b/net/ipv6/addrconf.c
-index a9358c796a81..7e39846f556b 100644
+index bb9add46e382..20346b1dd103 100644
 --- a/net/ipv6/addrconf.c
 +++ b/net/ipv6/addrconf.c
-@@ -5657,6 +5657,7 @@ static inline void ipv6_store_devconf(struct ipv6_devconf *cnf,
+@@ -5674,6 +5674,7 @@ static inline void ipv6_store_devconf(struct ipv6_devconf *cnf,
  	array[DEVCONF_NDISC_EVICT_NOCARRIER] = cnf->ndisc_evict_nocarrier;
  	array[DEVCONF_ACCEPT_UNTRACKED_NA] = cnf->accept_untracked_na;
  	array[DEVCONF_ACCEPT_RA_MIN_LFT] = cnf->accept_ra_min_lft;
@@ -111,7 +112,7 @@ index a9358c796a81..7e39846f556b 100644
  }
  
  static inline size_t inet6_ifla6_size(void)
-@@ -7086,6 +7087,13 @@ static const struct ctl_table addrconf_sysctl[] = {
+@@ -7116,6 +7117,13 @@ static const struct ctl_table addrconf_sysctl[] = {
  		.extra1		= (void *)SYSCTL_ZERO,
  		.extra2		= (void *)SYSCTL_ONE,
  	},
@@ -126,10 +127,10 @@ index a9358c796a81..7e39846f556b 100644
  		.procname	= "ioam6_id",
  		.data		= &ipv6_devconf.ioam6_id,
 diff --git a/net/ipv6/route.c b/net/ipv6/route.c
-index eb3afaee62e8..0f8670e74cc7 100644
+index 53197087353a..4fed0253cf83 100644
 --- a/net/ipv6/route.c
 +++ b/net/ipv6/route.c
-@@ -679,6 +679,14 @@ static inline void rt6_probe(struct fib6_nh *fib6_nh)
+@@ -716,6 +716,14 @@ static inline void rt6_probe(struct fib6_nh *fib6_nh)
  }
  #endif
  
@@ -144,7 +145,7 @@ index eb3afaee62e8..0f8670e74cc7 100644
  /*
   * Default Router Selection (RFC 2461 6.3.6)
   */
-@@ -720,6 +728,8 @@ static int rt6_score_route(const struct fib6_nh *nh, u32 fib6_flags, int oif,
+@@ -757,6 +765,8 @@ static int rt6_score_route(const struct fib6_nh *nh, u32 fib6_flags, int oif,
  
  	if (!m && (strict & RT6_LOOKUP_F_IFACE))
  		return RT6_NUD_FAIL_HARD;
@@ -154,5 +155,5 @@ index eb3afaee62e8..0f8670e74cc7 100644
  	m |= IPV6_DECODE_PREF(IPV6_EXTRACT_PREF(fib6_flags)) << 2;
  #endif
 -- 
-2.39.2
+2.39.5
 

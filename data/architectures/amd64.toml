@@ -12,5 +12,6 @@ packages = [
   "vyos-intel-ixgbe",
   "vyos-intel-ixgbevf",
   "openvpn-dco",
-  "telegraf"
+  "telegraf",
+  "vyos-ipt-netflow",
 ]

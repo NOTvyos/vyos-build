@@ -1,6 +1,6 @@
 [[packages]]
 name = "radvd"
-commit_id = "f2de4764559"
+commit_id = "v2.20"
 scm_url = "https://github.com/radvd-project/radvd"
 
 #build_cmd = "cd ..; ./build.sh"

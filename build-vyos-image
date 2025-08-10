@@ -573,32 +573,32 @@ DOCUMENTATION_URL="{build_config['documentation_url']}"
         lb_config_tmpl = jinja2.Template("""
         lb config noauto \
                 --apt-indices false \
-                --apt-options "--yes -oAPT::Get::allow-downgrades=true" \
+                --apt-options "--yes" \
                 --apt-recommends false \
-                --architecture {{architecture}} \
-                --archive-areas {{debian_archive_areas}} \
+                --architecture "{{architecture}}" \
+                --archive-areas "{{debian_archive_areas}}" \
                 --backports true \
                 --binary-image iso-hybrid \
                 --bootappend-live "boot=live components hostname=vyos username=live nopersistence noautologin nonetworking union=overlay console=ttyS0,115200 console=tty0 net.ifnames=0 biosdevname=0" \
                 --bootappend-live-failsafe "live components memtest noapic noapm nodma nomce nolapic nomodeset nosmp nosplash vga=normal console=ttyS0,115200 console=tty0 net.ifnames=0 biosdevname=0" \
-                --bootloaders {{bootloaders}} \
-                --checksums 'sha256 md5' \
+                --bootloaders "{{bootloaders}}" \
+                --checksums "sha256" \
                 --chroot-squashfs-compression-type "{{squashfs_compression_type}}" \
                 --debian-installer none \
                 --debootstrap-options "--variant=minbase --exclude=isc-dhcp-client,isc-dhcp-common,ifupdown --include=apt-utils,ca-certificates,gnupg2" \
-                --distribution {{debian_distribution}} \
+                --distribution "{{debian_distribution}}" \
                 --firmware-binary false \
                 --firmware-chroot false \
                 --iso-application "VyOS" \
                 --iso-publisher "{{build_by}}" \
                 --iso-volume "VyOS" \
-                --linux-flavours {{kernel_flavor}} \
-                --linux-packages linux-image-{{kernel_version}} \
-                --mirror-binary {{debian_mirror}} \
-                --mirror-binary-security {{debian_security_mirror}} \
-                --mirror-bootstrap {{debian_mirror}} \
-                --mirror-chroot {{debian_mirror}} \
-                --mirror-chroot-security {{debian_security_mirror}} \
+                --linux-flavours "{{kernel_flavor}}" \
+                --linux-packages "linux-image-{{kernel_version}}" \
+                --mirror-binary "{{debian_mirror}}" \
+                --mirror-binary-security "{{debian_security_mirror}}" \
+                --mirror-bootstrap "{{debian_mirror}}" \
+                --mirror-chroot "{{debian_mirror}}" \
+                --mirror-chroot-security "{{debian_security_mirror}}" \
                 --security true \
                 --updates true \
                 --utc-time true

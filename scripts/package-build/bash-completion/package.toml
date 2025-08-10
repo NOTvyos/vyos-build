@@ -1,0 +1,12 @@
+# VyOS CLI requires an older version of bash-completion to work
+
+[[packages]]
+name = "bash-completion"
+commit_id = "debian/2.8-6"
+scm_url = "https://salsa.debian.org/debian/bash-completion"
+
+build_cmd = """
+
+# Build deb
+dpkg-buildpackage -b -us -uc
+"""

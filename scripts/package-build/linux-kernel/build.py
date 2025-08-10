@@ -18,6 +18,7 @@
 import datetime
 import glob
 import shutil
+import sys
 import toml
 import os
 import subprocess
@@ -37,6 +38,7 @@ def ensure_dependencies(dependencies: list) -> None:
         return
 
     print("I: Ensure Debian build dependencies are met")
+    run(['sudo', 'apt-get', 'update'], check=True)
     run(['sudo', 'apt-get', 'install', '-y'] + dependencies, check=True)
 
 
@@ -59,8 +61,12 @@ def clone_or_update_repo(repo_dir: Path, scm_url: str, commit_id: str) -> None:
         run(['git', 'checkout', commit_id], cwd=repo_dir, check=True)
         #run(['git', 'pull'], cwd=repo_dir, check=True)
     else:
-        run(['git', 'clone', scm_url, str(repo_dir)], check=True)
-        run(['git', 'checkout', commit_id], cwd=repo_dir, check=True)
+        try:
+            run(['git', 'clone', scm_url, str(repo_dir)], check=True)
+            run(['git', 'checkout', commit_id], cwd=repo_dir, check=True)
+        except CalledProcessError as e:
+            print(f"Failed to clone or checkout: {e}")
+            sys.exit(1)
 
 
 def create_tarball(package_name, source_dir=None):
@@ -112,9 +118,6 @@ def build_package(package: dict, dependencies: list) -> None:
         # Clone or update the repository
         #clone_or_update_repo(repo_dir, package['scm_url'], package['commit_id'])
 
-        # Ensure dependencies
-        #ensure_dependencies(dependencies)
-
         # Prepare the package if required
         #if package.get('prepare_package', False):
         #    prepare_package(repo_dir, package.get('install_data', ''))
@@ -137,6 +140,8 @@ def build_package(package: dict, dependencies: list) -> None:
             build_intel_ixgbevf()
         elif package['build_cmd'] == 'build_jool':
             build_jool()
+        elif package['build_cmd'] == 'build_ipt_netflow':
+            build_ipt_netflow(package['commit_id'], package['scm_url'])
         elif package['build_cmd'] == 'build_openvpn_dco':
             build_openvpn_dco(package['commit_id'], package['scm_url'])
             create_tarball(f'{package["name"]}-{package["commit_id"]}', f'{package["name"]}')
@@ -225,6 +230,11 @@ def build_jool():
     """Build Jool"""
     run(['echo y | ./build-jool.py'], check=True, shell=True)
 
+def build_ipt_netflow(commit_id, scm_url):
+    """Build ipt_NETFLOW"""
+    repo_dir = Path('ipt-netflow')
+    clone_or_update_repo(repo_dir, scm_url, commit_id)
+    run(['./build-ipt-netflow.sh'], check=True, shell=True)
 
 def build_openvpn_dco(commit_id, scm_url):
     """Build OpenVPN DCO"""
@@ -245,6 +255,7 @@ if __name__ == '__main__':
     arg_parser = ArgumentParser()
     arg_parser.add_argument('--config', default='package.toml', help='Path to the package configuration file')
     arg_parser.add_argument('--packages', nargs='+', help='Names of packages to build (default: all)', default=[])
+    arg_parser.add_argument('--install-dependencies', '-i', help='Only install build dependencies', action='store_true')
     args = arg_parser.parse_args()
 
     # Load package configuration
@@ -254,6 +265,13 @@ if __name__ == '__main__':
     # Extract defaults and packages
     with open(defaults_path, 'r') as file:
         defaults = toml.load(file)
+
+    # Load global dependencies
+    global_dependencies = config.get('dependencies', {}).get('packages', [])
+    if global_dependencies:
+        ensure_dependencies(global_dependencies)
+        if args.install_dependencies:
+            exit(0)
 
     packages = config['packages']
 

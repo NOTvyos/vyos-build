@@ -17,6 +17,7 @@
 
 import glob
 import shutil
+import sys
 import toml
 import os
 
@@ -91,7 +92,11 @@ def build_package(package: list, patch_dir: Path) -> None:
 
         # Check out the specific commit
         run(['git', 'checkout', package['commit_id']], cwd=repo_dir, check=True)
+    except CalledProcessError as e:
+        print(f"Failed to clone or checkout for package '{repo_name}': {e}")
+        sys.exit(1)
 
+    try:
         # The `pre_build_hook` is an optional configuration defined in `package.toml`.
         # It executes after the repository is checked out and before the build process begins.
         # This hook allows you to perform preparatory tasks, such as creating directories,
@@ -120,9 +125,17 @@ def build_package(package: list, patch_dir: Path) -> None:
                 print(f"I: pre_build_hook failed for the {repo_name}")
                 raise
 
-        # Apply patches if any
-        if (repo_dir / 'patches'):
-            apply_patches(repo_dir, patch_dir / repo_name)
+        # Apply patches if the 'apply_patches' key is set to True (default) in the package configuration
+        # This allows skipping patch application for specific packages when desired
+        #
+        # Usage:
+        #   apply_patches = false
+        #
+        # Default to True if the key is missing
+        if package.get('apply_patches', True):
+            # Check if the 'patches' directory exists in the repository
+            if (repo_dir / 'patches'):
+                apply_patches(repo_dir, patch_dir / repo_name)
 
         # Sanitize the commit ID and build a tarball for the package
         commit_id_sanitized = package['commit_id'].replace('/', '_')

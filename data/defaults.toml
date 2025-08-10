@@ -14,7 +14,7 @@ vyos_mirror = "https://packages.vyos.net/repositories/circinus"
 vyos_branch = "circinus"
 release_train = "circinus"
 
-kernel_version = "6.6.66"
+kernel_version = "6.6.93"
 kernel_flavor = "vyos"
 bootloaders = "syslinux,grub-efi"
 

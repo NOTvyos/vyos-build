@@ -1,0 +1,9 @@
+[[packages]]
+name = "libnss-mapuser"
+commit_id = "circinus"
+scm_url = "https://github.com/VyOS-Networks/libnss-mapuser.git"
+
+[dependencies]
+packages = [
+    "libaudit-dev"
+]

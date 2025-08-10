@@ -9,6 +9,7 @@
 /ovpn-dco
 /nat-rtsp*
 /jool*
+/ipt-netflow*
 /qat*
 /QAT*
 *.tar.gz

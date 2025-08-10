@@ -1,0 +1,5 @@
+[[packages]]
+name = "blackbox_exporter"
+commit_id = "v0.26.0"
+scm_url = "https://github.com/prometheus/blackbox_exporter"
+build_cmd = "cd ..; y | ./build.sh"

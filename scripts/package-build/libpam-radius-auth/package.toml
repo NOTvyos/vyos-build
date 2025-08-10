@@ -1,7 +1,7 @@
 [[packages]]
 name = "libpam-radius-auth"
 commit_id = "circinus"
-scm_url = "https://github.com/vyos/libpam-radius-auth.git"
+scm_url = "https://github.com/VyOS-Networks/libpam-radius-auth.git"
 
 [dependencies]
 packages = [

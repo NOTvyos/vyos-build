@@ -84,6 +84,9 @@ cd ${CWD}
 # und thus lead to duplicated files
 find ${DEBIAN_DIR} -name "modules.*" | xargs rm -f
 
+# Sign generated Kernel modules
+${CWD}/sign-modules.sh ${DEBIAN_DIR}
+
 echo "#!/bin/sh" > ${DEBIAN_POSTINST}
 echo "/sbin/depmod -a ${KERNEL_VERSION}${KERNEL_SUFFIX}" >> ${DEBIAN_POSTINST}
 

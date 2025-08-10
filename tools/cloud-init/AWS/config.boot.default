@@ -9,8 +9,11 @@ system {
             level admin
         }
     }
+    option {
+        reboot-on-upgrade-failure 5
+    }
     syslog {
-        global {
+        local {
             facility all {
                 level info
             }
