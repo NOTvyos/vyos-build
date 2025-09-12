@@ -54,7 +54,7 @@ def pkgList = [
      'buildCmd': 'cd ..; pwd; ls -al; ./build-accel-ppp.sh'],
 
     // Intel QAT
-    //['name': 'qat', 'buildCmd': 'cd ..; ./build-intel-qat.sh'],
+    ['name': 'qat', 'buildCmd': 'cd ..; ./build-intel-qat.sh'],
 
     // Intel IXGBE
     ['name': 'ixgbe', 'buildCmd': 'cd ..; ./build-intel-ixgbe.sh'],
