@@ -1,7 +1,7 @@
 {
   "architecture": "amd64",
   "debian_mirror": "http://archive.debian.org/debian",
-  "debian_security_mirror": "http://deb.debian.org/debian-security",
+  "debian_security_mirror": "http://archive.debian.org/debian-security",
   "debian_distribution": "buster",
   "vyos_mirror": "http://dev.packages.vyos.net/repositories/equuleus",
   "vyos_branch": "equuleus",

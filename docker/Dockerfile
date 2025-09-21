@@ -55,8 +55,7 @@ COPY gpgvnoexpkeysig /usr/libexec/gpgvnoexpkeysig
 RUN echo 'Apt::Key::gpgvcommand "/usr/libexec/gpgvnoexpkeysig";' > /etc/apt/apt.conf.d/01gpgvnoexpkeysig
 
 # Fix apt to use archive mirror
-RUN sed -i -E 's~(deb http://deb.debian.org/debian-security)~#\1~' /etc/apt/sources.list
-RUN sed -i 's~^deb http://deb.debian.org~deb http://archive.debian.org~' /etc/apt/sources.list
+RUN sed -i -E 's~^deb http://(deb|security).debian.org~deb http://archive.debian.org~' /etc/apt/sources.list
 
 # We now have Debian Bullseye (11) so cached images require the permit to
 # change the releaseinfo from stable -> oldstable
