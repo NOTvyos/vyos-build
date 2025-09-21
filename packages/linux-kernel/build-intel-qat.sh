@@ -14,7 +14,7 @@ fi
 
 . ${KERNEL_VAR_FILE}
 
-url="https://dev.packages.vyos.net/source-mirror/QAT1.7.l.4.9.0-00008.tar.gz"
+url="https://packages.vyos.net/source-mirror/QAT1.7.l.4.9.0-00008.tar.gz"
 
 cd ${CWD}
 
