@@ -1,0 +1,27 @@
+From a4f8dda069dfce77e6ef0764de476dfdca7dc812 Mon Sep 17 00:00:00 2001
+From: Kyrylo Yatsenko <hedrok@gmail.com>
+Date: Mon, 1 Sep 2025 19:57:27 +0300
+Subject: [PATCH] flows_dump_seq_show: fix table when no VLAN
+
+When no VLAN nothing was output, so columns were off.
+Output "-" when no VLAN.
+---
+ ipt_NETFLOW.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/ipt_NETFLOW.c b/ipt_NETFLOW.c
+index eee8074..ca4d0f2 100644
+--- a/ipt_NETFLOW.c
++++ b/ipt_NETFLOW.c
+@@ -1153,6 +1153,8 @@ static int flows_dump_seq_show(struct seq_file *seq, void *v)
+ 		seq_printf(seq, " %d", ntohs(nf->tuple.tag[0]));
+ 		if (nf->tuple.tag[1])
+ 			seq_printf(seq, ",%d", ntohs(nf->tuple.tag[1]));
++	} else {
++		seq_printf(seq, " -");
+ 	}
+ #endif
+ #if defined(ENABLE_MAC) || defined(ENABLE_VLAN)
+-- 
+2.50.1
+

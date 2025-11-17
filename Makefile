@@ -26,17 +26,32 @@ test: checkiso
 .PHONY: test-no-interfaces
 .ONESHELL:
 test-no-interfaces: checkiso
-	scripts/check-qemu-install --debug --configd --smoketest --uefi --no-interfaces build/live-image-amd64.hybrid.iso
+	scripts/check-qemu-install --debug --configd --smoketest --uefi --no-interfaces --cpu 4 --memory 8 --huge-page-size 2M --huge-page-count 1800 build/live-image-amd64.hybrid.iso
+
+.PHONY: test-no-interfaces-no-vpp
+.ONESHELL:
+test-no-interfaces-no-vpp: checkiso
+	scripts/check-qemu-install --debug --configd --smoketest --uefi --no-interfaces --no-vpp build/live-image-amd64.hybrid.iso
 
 .PHONY: test-interfaces
 .ONESHELL:
 test-interfaces: checkiso
 	scripts/check-qemu-install --debug --configd --match="interfaces_" --smoketest --uefi build/live-image-amd64.hybrid.iso
 
+.PHONY: test-vpp
+.ONESHELL:
+test-vpp: checkiso
+	scripts/check-qemu-install --debug --configd --match="vpp" --smoketest --uefi --cpu 4 --memory 8 --huge-page-size 2M --huge-page-count 1800 build/live-image-amd64.hybrid.iso
+
 .PHONY: testc
 .ONESHELL:
 testc: checkiso
-	scripts/check-qemu-install --debug --configd --configtest build/live-image-amd64.hybrid.iso $(filter-out $@,$(MAKECMDGOALS))
+	scripts/check-qemu-install --debug --configd --match="!vpp" --configtest build/live-image-amd64.hybrid.iso $(filter-out $@,$(MAKECMDGOALS))
+
+.PHONY: testcvpp
+.ONESHELL:
+testcvpp: checkiso
+	scripts/check-qemu-install --debug --configd --match="vpp" --cpu 4 --memory 8 --huge-page-size 2M --huge-page-count 1800 --configtest build/live-image-amd64.hybrid.iso $(filter-out $@,$(MAKECMDGOALS))
 
 .PHONY: testraid
 .ONESHELL:

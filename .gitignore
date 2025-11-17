@@ -1,11 +1,12 @@
+.build/config
 build/*
+config/*
 *.pyc
 packer_build/*
 packer_cache/*
 key/*
-packages/*
-!packages/*/
 /testinstall*.img
+/testinstall*.efivars
 /*.qcow2
 /*.tar
 .DS_Store

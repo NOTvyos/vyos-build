@@ -17,10 +17,10 @@ scm_url = "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmwa
 build_cmd = "build_linux_firmware"
 
 [[packages]]
-name = "accel-ppp"
-commit_id = "1.13.0"
-scm_url = "https://github.com/accel-ppp/accel-ppp.git"
-build_cmd = "build_accel_ppp"
+name = "accel-ppp-ng"
+commit_id = "a9ceadc"
+scm_url = "https://github.com/accel-ppp/accel-ppp-ng.git"
+build_cmd = "build_accel_ppp_ng"
 
 [[packages]]
 name = "ovpn-dco"

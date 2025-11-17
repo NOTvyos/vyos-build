@@ -95,11 +95,21 @@ def create_tarball(package_name, source_dir=None):
     if not os.path.isdir(source_dir):
         raise FileNotFoundError(f"Directory '{source_dir}' does not exist.")
 
+    base_dir = os.path.dirname(source_dir) or '.'
+    dir_name = os.path.basename(source_dir)
+
     # Create the tarball
     try:
-        shutil.make_archive(base_name=output_tarball.replace('.tar.gz', ''), format='gztar', root_dir=source_dir)
+        subprocess.run([
+            'tar',
+            f'--exclude={dir_name}/.git',
+            f'--exclude={dir_name}/.github',
+            '-czf', output_tarball,
+            '-C', base_dir,
+            dir_name
+        ], check=True)
         print(f"I: Tarball created: {output_tarball}")
-    except Exception as e:
+    except subprocess.CalledProcessError as e:
         print(f"I: Failed to create tarball for {package_name}: {e}")
 
 
@@ -129,8 +139,8 @@ def build_package(package: dict, dependencies: list) -> None:
         elif package['build_cmd'] == 'build_linux_firmware':
             build_linux_firmware(package['commit_id'], package['scm_url'])
             create_tarball(f'{package["name"]}-{package["commit_id"]}', f'{package["name"]}')
-        elif package['build_cmd'] == 'build_accel_ppp':
-            build_accel_ppp(package['commit_id'], package['scm_url'])
+        elif package['build_cmd'] == 'build_accel_ppp_ng':
+            build_accel_ppp_ng(package['commit_id'], package['scm_url'])
             create_tarball(f'{package["name"]}-{package["commit_id"]}', f'{package["name"]}')
         elif package['build_cmd'] == 'build_intel_qat':
             build_intel_qat()
@@ -204,11 +214,11 @@ def build_linux_firmware(commit_id, scm_url):
     run(['./build-linux-firmware.sh'], check=True)
 
 
-def build_accel_ppp(commit_id, scm_url):
-    """Build accel-ppp"""
-    repo_dir = Path('accel-ppp')
+def build_accel_ppp_ng(commit_id, scm_url):
+    """Build accel-ppp-ng"""
+    repo_dir = Path('accel-ppp-ng')
     clone_or_update_repo(repo_dir, scm_url, commit_id)
-    run(['./build-accel-ppp.sh'], check=True)
+    run(['./build-accel-ppp-ng.sh'], check=True)
 
 
 def build_intel_qat():

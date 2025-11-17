@@ -140,7 +140,7 @@ def build_package(package: list, patch_dir: Path) -> None:
         # Sanitize the commit ID and build a tarball for the package
         commit_id_sanitized = package['commit_id'].replace('/', '_')
         tarball_name = f"{repo_name}_{commit_id_sanitized}.tar.gz"
-        run(['tar', '-czf', tarball_name, '-C', str(repo_dir.parent), repo_name], check=True)
+        run(['tar', '--exclude=.git', '--exclude=.github', '-czf', tarball_name, '-C', str(repo_dir.parent), repo_name], check=True)
         print(f"I: Tarball created: {tarball_name}")
 
         # Prepare the package if required
@@ -157,7 +157,7 @@ def build_package(package: list, patch_dir: Path) -> None:
 
         # Build the package, check if we have build_cmd in the package.toml
         try:
-            build_cmd = package.get('build_cmd', 'dpkg-buildpackage -uc -us -tc -F')
+            build_cmd = package.get('build_cmd', 'dpkg-buildpackage -uc -us -tc -F --source-option=--tar-ignore=.git --source-option=--tar-ignore=.github')
             run(build_cmd, cwd=repo_dir, check=True, shell=True)
         except CalledProcessError as e:
             print(e)

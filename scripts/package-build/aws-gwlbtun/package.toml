@@ -1,11 +1,25 @@
 [[packages]]
 name = "aws-gwlbtun"
-commit_id = "f78058a"
+commit_id = "c1fd48b"
 scm_url = "https://github.com/aws-samples/aws-gateway-load-balancer-tunnel-handler"
 
 
 ## Build cmd start
 build_cmd = '''\
+
+# Prepare boost headers
+export BOOST_INSTALL_DIR=$(pwd)/boost-headers-install
+if [ ! -d "$BOOST_INSTALL_DIR" ]; then
+    wget -c https://github.com/boostorg/boost/releases/download/boost-1.88.0/boost-1.88.0-b2-nodocs.tar.xz
+    tar -xvf boost-1.88.0-b2-nodocs.tar.xz
+    cd boost-1.88.0
+    # Only unordered library is needed, so only headers are required
+    ./bootstrap.sh --prefix=$BOOST_INSTALL_DIR --with-libraries=unordered
+    ./b2 headers install
+    cd ../
+fi;
+
+
 mkdir -p debian
 echo 'obj-*-linux-gnu/gwlbtun usr/sbin' > debian/install
 
@@ -51,9 +65,18 @@ binary:
 
 clean:
 	dh clean
+
+override_dh_auto_configure:
+	dh_auto_configure -- -DBOOST_ROOT=$BOOST_INSTALL_DIR
+
 EOF
 
 chmod +x debian/rules
 debuild -us -uc -b
 '''
 ## Build cmd end
+
+[dependencies]
+packages = [
+    "cmake"
+]

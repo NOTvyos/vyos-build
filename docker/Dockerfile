@@ -89,7 +89,8 @@ RUN apt-get update && apt-get install -y \
       openssh-client \
       jq \
       socat \
-      python-is-python3
+      python-is-python3 \
+      apt-transport-https
 
 # Packages needed for vyos-build
 RUN apt-get update && apt-get install -y \
@@ -109,7 +110,8 @@ RUN apt-get update && apt-get install -y \
       debootstrap \
       live-build \
       gdisk \
-      dosfstools
+      dosfstools \
+      kpartx
 
 # Packages for TPM test
 RUN apt-get update && apt-get install -y swtpm
@@ -123,9 +125,10 @@ RUN if dpkg-architecture -ii386 || dpkg-architecture -iamd64; then \
 
 # Building libvyosconf requires a full configured OPAM/OCaml setup
 RUN apt-get update && apt-get install -y \
+      quilt \
       debhelper \
       libffi-dev \
-      libpcre3-dev \
+      libpcre2-dev \
       unzip
 
 # Update certificate store to not crash ocaml package install
@@ -141,11 +144,9 @@ RUN curl https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh \
     sed -i 's/read_tty BINDIR/BINDIR=""/' /tmp/opam_install.sh && sh /tmp/opam_install.sh && \
     opam init --root=/opt/opam --comp=${OCAML_VERSION} --disable-sandboxing --no-setup
 
-RUN eval $(opam env --root=/opt/opam --set-root) && \
-    opam pin add pcre https://github.com/mmottl/pcre-ocaml.git#0c4ca03a -y
-
 RUN eval $(opam env --root=/opt/opam --set-root) && opam install -y \
       re \
+      pcre2 \
       num \
       ctypes \
       ctypes-foreign \
@@ -153,12 +154,6 @@ RUN eval $(opam env --root=/opt/opam --set-root) && opam install -y \
       containers \
       fileutils \
       xml-light
-
-# Packages needed for libvyosconfig
-RUN apt-get update && apt-get install -y \
-      quilt \
-      libpcre3-dev \
-      libffi-dev
 
 # Packages needed for open-vmdk
 RUN apt-get update && apt-get install -y \
@@ -200,6 +195,11 @@ RUN wget https://salsa.debian.org/klausenbusk-guest/debootstrap/commit/a9a603b17
 # FPM is used when generation Debian pckages for e.g. Intel QAT drivers
 RUN gem install --no-document fpm
 
+# Add vyos package repo
+COPY vyos-dev.list /etc/apt/sources.list.d/vyos-dev.list
+COPY vyos-dev.key /usr/share/keyrings/vyos-dev-archive-keyring.gpg
+RUN apt-key add /usr/share/keyrings/vyos-dev-archive-keyring.gpg
+
 # Packages needed for vyos-1x
 RUN pip install --break-system-packages \
       git+https://github.com/aristanetworks/j2lint.git@341b5d5db86 \
@@ -216,7 +216,7 @@ RUN pip install --break-system-packages \
       python3-inotify \
       python3-xmltodict \
       python3-lxml \
-      python3-nose \
+      python3-nose2 \
       python3-netifaces \
       python3-jinja2 \
       python3-jmespath \
@@ -230,6 +230,15 @@ RUN pip install --break-system-packages \
       python3-passlib \
       python3-tabulate \
       python3-zmq \
+      python3-vici \
+      python3-fastapi \
+      python3-pyudev \
+      python3-systemd \
+      python3-certbot-nginx \
+      python3-pam \
+      python3-dbus \
+      python3-pyroute2 \
+      python3-voluptuous \
       pylint \
       quilt \
       whois \
@@ -241,11 +250,6 @@ RUN GO_VERSION_INSTALL="1.23.2" ; \
     tar -C /opt -xzf /tmp/go*.tar.gz && \
     rm /tmp/go*.tar.gz
 RUN echo "export PATH=/opt/go/bin:$PATH" >> /etc/bash.bashrc
-
-# Packages needed for opennhrp
-RUN apt-get update && apt-get install -y \
-      libc-ares-dev \
-      libev-dev
 
 # Packages needed for Qemu test-suite
 # This is for now only supported on i386 and amd64 platforms
@@ -262,7 +266,6 @@ RUN if dpkg-architecture -ii386 || dpkg-architecture -iamd64; then \
 # This is only supported on i386 and amd64 platforms
 RUN if dpkg-architecture -ii386 || dpkg-architecture -iamd64; then \
      apt-get update && apt-get install -y \
-      kpartx \
       parted \
       udev \
       grub-pc \

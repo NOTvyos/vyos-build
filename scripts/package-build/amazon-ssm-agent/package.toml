@@ -9,8 +9,14 @@ ARCH=$(dpkg --print-architecture)
 TAG=$(git describe --tags --abbrev=0)
 COMMIT=$(git rev-parse --short HEAD)
 
-make build-linux
-make package-deb
+if [ "${ARCH}" = "arm64" ]; then
+    make build-arm64
+    make package-deb-arm64
+else
+    make build-linux
+    make package-deb
+fi
+
 cp ./bin/debian_${ARCH}/*.deb ../amazon-ssm-agent_${TAG}_${COMMIT}_${ARCH}.deb
 
 """

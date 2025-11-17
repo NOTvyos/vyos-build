@@ -19,6 +19,7 @@ build_cmd = "sudo dpkg -i ../libtac*.deb ../libpam-tacplus*.deb; dpkg-buildpacka
 [dependencies]
 packages = [
     "libpam-dev",
+    "libssl-dev",
     "autoconf-archive",
     "libaudit-dev"
 ]

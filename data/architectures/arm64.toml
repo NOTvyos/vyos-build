@@ -1,8 +1,10 @@
 additional_repositories = [
-  "deb [arch=arm64] https://repo.saltproject.io/py3/debian/11/arm64/3005 bullseye main",
-  "deb https://repo.zabbix.com/zabbix/6.0/debian-arm64 bookworm main"
+  "deb [arch=arm64] https://packages.vyos.net/saltproject/debian/11/arm64/3005 bullseye main",
+  "deb https://repo.zabbix.com/zabbix/6.0/debian-arm64 bookworm main",
+  "deb [arch=arm64] https://dl.cloudsmith.io/public/isc/kea-3-0/deb/debian bookworm main"
 ]
 
 # Packages included in ARM64 images by default
 packages = ["grub-efi-arm64", "openvpn-dco"]
 bootloaders = "grub-efi"
+squashfs_compression_type = "xz -b 256k -always-use-fragments -no-recovery"

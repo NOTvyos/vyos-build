@@ -1,0 +1,25 @@
+From 3f45658e9a2b8642e1c43f4adc22e107ea6eb235 Mon Sep 17 00:00:00 2001
+From: Kyrylo Yatsenko <hedrok@gmail.com>
+Date: Tue, 2 Sep 2025 10:29:04 +0300
+Subject: [PATCH] Change 'aggregation' parameter mode 400->444
+
+---
+ ipt_NETFLOW.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ipt_NETFLOW.c b/ipt_NETFLOW.c
+index eee8074..721353d 100644
+--- a/ipt_NETFLOW.c
++++ b/ipt_NETFLOW.c
+@@ -229,7 +229,7 @@ MODULE_PARM_DESC(engine_id, "Observation Domain ID");
+ #define AGGR_SIZE 1024
+ static char aggregation_buf[AGGR_SIZE] = "";
+ static char *aggregation = aggregation_buf;
+-module_param(aggregation, charp, 0400);
++module_param(aggregation, charp, 0444);
+ MODULE_PARM_DESC(aggregation, "aggregation ruleset");
+ static LIST_HEAD(aggr_n_list);
+ static LIST_HEAD(aggr_p_list);
+-- 
+2.50.1
+

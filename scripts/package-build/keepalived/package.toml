@@ -1,4 +1,4 @@
 [[packages]]
 name = "keepalived"
-commit_id = "debian/1%2.2.8-1"
+commit_id = "debian/1%2.3.3-1"
 scm_url = "https://salsa.debian.org/debian/pkg-keepalived.git"

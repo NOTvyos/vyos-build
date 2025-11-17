@@ -5,9 +5,9 @@ systemctl disable syslog.service
 systemctl disable rsyslog.service
 systemctl disable arpwatch.service
 systemctl disable smartd.service
-systemctl disable kea-ctrl-agent.service
-systemctl disable kea-dhcp4-server.service
-systemctl disable kea-dhcp6-server.service
+systemctl disable isc-kea-dhcp4-server.service
+systemctl disable isc-kea-dhcp6-server.service
+systemctl disable isc-kea-dhcp-ddns-server.service
 systemctl disable isc-dhcp-relay.service
 systemctl disable nfacctd.service
 systemctl disable pmacctd.service
@@ -42,7 +42,6 @@ systemctl disable snmpd.service
 systemctl disable conserver-server.service
 systemctl disable dropbear.service
 systemctl disable fancontrol.service
-systemctl disable fastnetmon.service
 systemctl disable ddclient.service
 systemctl disable ocserv.service
 systemctl disable tuned.service
@@ -65,6 +64,7 @@ systemctl disable haproxy.service
 systemctl disable owamp-server.service
 systemctl disable twamp-server.service
 systemctl disable vyos-wan-load-balance.service
+systemctl disable vpp.service
 systemctl disable nvmf-autoconnect.service
 systemctl disable dpkg-db-backup.timer
 systemctl disable dpkg-db-backup.service

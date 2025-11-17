@@ -19,6 +19,14 @@ if [ -d .git ]; then
     git clean --force -d -x
 fi
 
+# Possibly making fork makes more sense in this case?..
+PATCH_DIR=${CWD}/patches/ipt-netflow
+for patch in $(ls ${PATCH_DIR})
+do
+    echo "I: Apply ipt-netflow patch: ${PATCH_DIR}/${patch}"
+    patch -p1 < ${PATCH_DIR}/${patch}
+done
+
 . ${KERNEL_VAR_FILE}
 
 DRIVER_VERSION=$(git describe | sed s/^v//)
@@ -29,7 +37,7 @@ DEBIAN_DIR="tmp/"
 DEBIAN_CONTROL="${DEBIAN_DIR}/DEBIAN/control"
 DEBIAN_POSTINST="${CWD}/vyos-ipt-netflow.postinst"
 
-./configure --enable-aggregation --kdir=${KERNEL_DIR}
+./configure --enable-direction --enable-macaddress --enable-vlan --enable-sampler --enable-aggregation --kdir=${KERNEL_DIR}
 make all
 
 if [ "x$?" != "x0" ]; then

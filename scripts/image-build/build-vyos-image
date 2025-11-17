@@ -394,9 +394,6 @@ if __name__ == "__main__":
             repo = git.Repo('.', search_parent_directories=True)
             # Retrieve the Git commit ID of the repository, 14 charaters will be sufficient
             build_git = repo.head.object.hexsha[:14]
-            # If somone played around with the source tree and the build is "dirty", mark it
-            if repo.is_dirty():
-                build_git += "-dirty"
 
             # Retrieve git branch name or current tag
             # Building a tagged release might leave us checking out a git tag that is not the tip of a named branch (detached HEAD)

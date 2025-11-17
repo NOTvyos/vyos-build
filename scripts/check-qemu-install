@@ -83,6 +83,10 @@ parser.add_argument('--qemu-cmd', help='Only generate QEMU launch command',
                 action='store_true', default=False)
 parser.add_argument('--cpu', help='Set QEMU CPU', type=int, default=2)
 parser.add_argument('--memory', help='Set QEMU memory', type=int, default=4)
+parser.add_argument('--no-vpp', help='Execute testsuite without VPP tests',
+                action='store_true', default=False)
+parser.add_argument('--huge-page-size', help='Huge page size (e.g., 2M, 1G)', type=str)
+parser.add_argument('--huge-page-count', help='Number of huge pages to allocate', type=int)
 
 args = parser.parse_args()
 
@@ -330,6 +334,22 @@ try:
     loginVM(c, log)
 
     #################################################
+    # Configure boot options if required
+    #################################################
+    if args.huge_page_size and args.huge_page_count:
+        c.sendline('configure')
+        c.expect(cfg_mode_prompt)
+        c.sendline(f'set system option kernel memory hugepage-size {args.huge_page_size} hugepage-count {args.huge_page_count}')
+        c.expect(cfg_mode_prompt)
+        c.sendline('set system option kernel disable-mitigations')
+        c.expect(cfg_mode_prompt)
+        c.sendline('commit')
+        c.expect(cfg_mode_prompt)
+        c.sendline('save')
+        c.expect(cfg_mode_prompt)
+        c.sendline('exit')
+        c.expect(op_mode_prompt)
+    #################################################
     # Installing into VyOS system
     #################################################
     log.info('Starting installer')
@@ -391,6 +411,14 @@ try:
 
     loginVM(c, log)
 
+    #################################################
+    # Boot options require a reboot
+    #################################################
+    if args.huge_page_size and args.huge_page_count:
+        log.info('Rebooting to apply kernel boot options')
+        c.sendline('reboot now')
+        loginVM(c, log)
+
     ################################################
     # Always load the WiFi simulation module
     ################################################
@@ -431,6 +459,14 @@ try:
     c.expect(op_mode_prompt)
     c.sendline('show system memory')
     c.expect(op_mode_prompt)
+    c.sendline('show system memory detail | no-more')
+    c.expect(op_mode_prompt)
+    c.sendline('show configuration commands | match kernel')
+    c.expect(op_mode_prompt)
+    c.sendline('cat /proc/cmdline')
+    c.expect(op_mode_prompt)
+    c.sendline('show version all | grep -e "vpp" -e "vyos-1x"')
+    c.expect(op_mode_prompt)
 
     #################################################
     # Verify /etc/os-release via lsb_release
@@ -460,7 +496,7 @@ try:
         def verify_mount():
             # Verify encrypted and mounted
             c.sendline('mount | grep vyos_config')
-            c.expect('/dev/mapper/vyos_config on /config.*')
+            c.expect('/dev/mapper/vyos_config on /opt/vyatta/etc/config.*')
             c.expect(op_mode_prompt)
 
         def verify_config():
@@ -574,7 +610,7 @@ try:
         log.info('Loading encrypted config.boot')
         c.sendline('configure')
         c.expect(cfg_mode_prompt)
-        c.sendline('load /config/config.boot')
+        c.sendline('load /opt/vyatta/etc/config/config.boot')
         c.expect(cfg_mode_prompt)
         c.sendline('commit')
         c.expect(cfg_mode_prompt)
@@ -582,6 +618,88 @@ try:
         c.expect(op_mode_prompt)
 
         verify_config()
+
+        # Shutdown VM
+        shutdownVM(c, log, 'Shutdown VM for non-TPM backed test')
+
+        # Clear swtpm
+        from glob import glob
+        for f in glob(f'{tpm_folder}/*'):
+            os.remove(f)
+
+        # Shutdown kills swtpm
+        tpm_process.join()
+        tpm_process.close()
+        tpm_process = None
+
+        # Booting back into VM
+        log.info('Booting system without TPM')
+        cmd = get_qemu_cmd(qemu_name, args.uefi, args.disk, raid=diskname_raid, tpm=False, vnc_enabled=args.vnc)
+        log.debug(f'Executing command: {cmd}')
+        c = pexpect.spawn(cmd, logfile=stl)
+
+        try:
+            c.expect('The highlighted entry will be executed automatically in', timeout=10)
+            c.sendline('')
+        except pexpect.TIMEOUT:
+            log.warning('Did not find GRUB countdown window, ignoring')
+
+        loginVM(c, log)
+
+        # New recovery key
+        test_recovery_key = ''.join(choices(string.ascii_uppercase + string.digits, k=32))
+
+        log.info('Encrypting config')
+        c.sendline('encryption enable')
+        c.expect('Are you sure you want to proceed\?.*')
+        c.sendline('y')
+        c.expect('Enter key: ')
+        c.sendline(test_recovery_key)
+        c.expect('Enter size of encrypted config partition.*', timeout=30)
+        c.sendline('32')
+        c.expect('Encrypted config volume has been enabled', timeout=tpm_timeout)
+        c.expect('Backup the key in a safe place!')
+        c.expect(f'Key: {test_recovery_key}')
+        c.expect(op_mode_prompt)
+
+        verify_mount()
+
+        shutdownVM(c, log, 'Shutdown VM for non-TPM config load')
+
+        # Booting back into VM
+        log.info('Booting system without TPM')
+        cmd = get_qemu_cmd(qemu_name, args.uefi, args.disk, raid=diskname_raid, tpm=False, vnc_enabled=args.vnc)
+        log.debug(f'Executing command: {cmd}')
+        c = pexpect.spawn(cmd, logfile=stl)
+
+        try:
+            c.expect('The highlighted entry will be executed automatically in', timeout=10)
+            c.sendline('')
+        except pexpect.TIMEOUT:
+            log.warning('Did not find GRUB countdown window, ignoring')
+
+        c.expect('.*encrypted config volume will not be automatically mounted', timeout=120)
+
+        loginVM(c, log)
+
+        # Test loading config with recovery key
+        c.sendline('encryption load')
+        c.expect('Enter key: ')
+        c.sendline(test_recovery_key)
+        c.expect('Encrypted config volume has been mounted', timeout=120)
+        c.expect(op_mode_prompt)
+
+        verify_mount()
+
+        log.info('Loading encrypted config.boot')
+        c.sendline('configure')
+        c.expect(cfg_mode_prompt)
+        c.sendline('load /opt/vyatta/etc/config/config.boot')
+        c.expect(cfg_mode_prompt)
+        c.sendline('commit')
+        c.expect(cfg_mode_prompt)
+        c.sendline('exit')
+        c.expect(op_mode_prompt)
 
     elif args.raid:
         # Verify RAID subsystem - by deleting a disk and re-create the array
@@ -670,6 +788,10 @@ try:
             # remove interface tests as they consume a lot of time
             c.sendline('sudo rm -f /usr/libexec/vyos/tests/smoke/cli/test_interfaces_*')
             c.expect(op_mode_prompt)
+        if args.no_vpp:
+            # remove VPP tests
+            c.sendline('sudo rm -f /usr/libexec/vyos/tests/smoke/cli/test_vpp*')
+            c.expect(op_mode_prompt)
 
         log.info('Executing VyOS smoketests')
         c.sendline('/usr/bin/vyos-smoketest')
@@ -696,6 +818,26 @@ try:
 
     # else, run configtest suite
     elif args.configtest:
+        # Remove config-tests that we don't want to run
+        if args.match:
+            if args.match.startswith("!"):
+                # Exclude mode — delete only the matched names
+                names = args.match[1:].split("|")
+                match_str = '-o '.join([f'-name "{name}"' for name in names])
+                cleanup_config_dir_cmd = f'sudo find /usr/libexec/vyos/tests/config -mindepth 1 -maxdepth 1 \\( {match_str} \\) -exec rm -rf {{}} +'
+                cleanup_config_tests_dir_cmd = f'sudo find /usr/libexec/vyos/tests/config-tests -mindepth 1 -maxdepth 1 \\( {match_str} \\) -exec rm -rf {{}} +'
+            else:
+                # Include mode — keep only the matched names, delete the rest
+                names = args.match.split("|")
+                match_str = '-o '.join([f'-name "{name}"' for name in names])
+                cleanup_config_dir_cmd = f'sudo find /usr/libexec/vyos/tests/config -mindepth 1 -maxdepth 1 ! \\( {match_str} \\) -exec rm -rf {{}} +'
+                cleanup_config_tests_dir_cmd = f'sudo find /usr/libexec/vyos/tests/config-tests -mindepth 1 -maxdepth 1 ! \\( {match_str} \\) -exec rm -rf {{}} +'
+
+            c.sendline(cleanup_config_dir_cmd)
+            c.expect(op_mode_prompt)
+            c.sendline(cleanup_config_tests_dir_cmd)
+            c.expect(op_mode_prompt)
+
         log.info('Adding a legacy WireGuard default keypair for migrations')
         c.sendline('sudo mkdir -p /config/auth/wireguard/default')
         c.expect(op_mode_prompt)
