@@ -18,7 +18,7 @@
 import glob
 import shutil
 import sys
-import toml
+import tomli
 import os
 
 from argparse import ArgumentParser
@@ -33,7 +33,6 @@ def ensure_dependencies(dependencies: list) -> None:
         return
 
     print("I: Ensure Debian build dependencies are met")
-    run(['sudo', 'apt-get', 'update'], check=True)
     run(['sudo', 'apt-get', 'install', '-y'] + dependencies, check=True)
 
 
@@ -207,11 +206,14 @@ if __name__ == '__main__':
     args = arg_parser.parse_args()
 
     # Load package configuration
-    with open(args.config, 'r') as file:
-        config = toml.load(file)
+    with open(args.config, 'rb') as file:
+        config = tomli.load(file)
 
     packages = config['packages']
     patch_dir = Path(args.patch_dir)
+
+    # Update APT mirror list before the build
+    run(['sudo', 'apt-get', 'update'], check=True)
 
     # Load global dependencies
     global_dependencies = config.get('dependencies', {}).get('packages', [])

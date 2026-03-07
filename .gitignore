@@ -5,8 +5,12 @@ config/*
 packer_build/*
 packer_cache/*
 key/*
-/testinstall*.img
+packages/*
+!packages/*/
+/testinstall*.raw
 /testinstall*.efivars
+/ci_data
+/ci_seed.iso
 /*.qcow2
 /*.tar
 .DS_Store

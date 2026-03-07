@@ -1,6 +1,7 @@
 #!/bin/bash
 CWD=$(pwd)
 KERNEL_SRC=linux
+ARCH=$(dpkg --print-architecture)
 
 set -e
 
@@ -22,7 +23,14 @@ cp -rv ${CWD}/arch/ .
 
 KERNEL_VERSION=$(make kernelversion)
 KERNEL_SUFFIX=-$(awk -F "= " '/kernel_flavor/ {print $2}' ../../../../data/defaults.toml | tr -d \")
-KERNEL_CONFIG=arch/x86/configs/vyos_defconfig
+
+if [ "${ARCH}" = "arm64" ]; then
+    KERNEL_CONFIG=arch/arm64/configs/vyos_defconfig
+else
+    KERNEL_CONFIG=arch/x86/configs/vyos_defconfig
+fi
+
+echo "KERNEL_CONFIG: ${KERNEL_CONFIG}"
 
 # VyOS requires some small Kernel Patches - apply them here
 # It's easier to habe them here and make use of the upstream

@@ -252,7 +252,7 @@ RUN GO_VERSION_INSTALL="1.23.2" ; \
 RUN echo "export PATH=/opt/go/bin:$PATH" >> /etc/bash.bashrc
 
 # Packages needed for Qemu test-suite
-# This is for now only supported on i386 and amd64 platforms
+# Packages for i386 and amd64 platforms
 RUN if dpkg-architecture -ii386 || dpkg-architecture -iamd64; then \
       apt-get update && apt-get install -y \
         python3-pexpect \
@@ -260,6 +260,15 @@ RUN if dpkg-architecture -ii386 || dpkg-architecture -iamd64; then \
         qemu-system-x86 \
         qemu-utils \
         qemu-kvm; \
+    fi
+
+# Packages for arm64 platform
+RUN if dpkg-architecture -iarm64; then \
+      apt-get update && apt-get install -y \
+        python3-pexpect \
+        ipxe-qemu \
+        qemu-system-aarch64 \
+        qemu-efi-aarch64; \
     fi
 
 # Packages needed for building vmware and GCE images
@@ -307,6 +316,12 @@ RUN git clone -b 4.4.6 https://github.com/perfsonar/i2util.git /tmp/i2util && \
       cd /tmp/i2util && \
       dpkg-buildpackage -uc -us -tc -b && \
       dpkg -i /tmp/*i2util*_$(dpkg-architecture -qDEB_HOST_ARCH).deb
+
+# Package needed for building Kea
+RUN echo "deb http://deb.debian.org/debian bookworm-backports main" \
+      > /etc/apt/sources.list.d/bookworm-backports.list \
+      && apt-get update \
+      && apt install -y -t bookworm-backports meson
 
 # Creating image for embedded systems needs this utilities to prepare a image file
 RUN apt-get update && apt-get install -y \
